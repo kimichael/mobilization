@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 public class Artist {
     private int id;
     private String name;
-    private String[] genre;
+    private String[] genres;
     private int tracks, albums;
     private String link;
     private String description;
@@ -19,9 +19,7 @@ public class Artist {
         return name;
     }
 
-    public String[] getGenre() {
-        return genre;
-    }
+    public String[] getGenres() {return genres;}
 
     public int getTracks() {
         return tracks;
@@ -45,5 +43,41 @@ public class Artist {
 
     public Bitmap getCoverBig() {
         return coverBig;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setGenres(String[] genres) {
+        this.genres = genres;
+    }
+
+    public void setTracks(int tracks) {
+        this.tracks = tracks;
+    }
+
+    public void setAlbums(int albums) {
+        this.albums = albums;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCoverSmall(Bitmap coverSmall) {
+        this.coverSmall = coverSmall;
+    }
+
+    public void setCoverBig(Bitmap coverBig) {
+        this.coverBig = coverBig;
     }
 }

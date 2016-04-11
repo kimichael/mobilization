@@ -38,7 +38,7 @@ public class ArtistAdapter<Artist> extends ArrayAdapter<Artist> {
             TextView trackCount = (TextView) v.findViewById(R.id.album_track_count);
 
             if (cover != null){
-                    cover.setImageBitmap(artist.getCoverSmall);
+                cover.setImageBitmap(artist.getCoverSmall());
             }
 
             if (name != null){
