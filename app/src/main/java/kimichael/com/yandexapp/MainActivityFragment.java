@@ -1,6 +1,7 @@
 package kimichael.com.yandexapp;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -87,11 +88,28 @@ public class MainActivityFragment extends Fragment {
                 artists[i].setLink(artistJson.getString(TAG_LINK));
                 artists[i].setDescription(artistJson.getString(TAG_DESCRIPTION));
 
-                artists[i].setCoverSmall();
-                artists[i].setCoverBig();
+                JSONObject covers = artistJson.getJSONObject("cover");
+                artists[i].setCoverSmall(getBitmapFromURL(covers.getString("small")));
+                artists[i].setCoverBig(getBitmapFromURL(covers.getString("big")));
 
             }
             return artists;
+        }
+
+        public Bitmap getBitmapFromURL(String src) {
+            try {
+                java.net.URL url = new java.net.URL(src);
+                HttpURLConnection connection = (HttpURLConnection) url
+                        .openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap myBitmap = BitmapFactory.decodeStream(input);
+                return myBitmap;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
         @Override
