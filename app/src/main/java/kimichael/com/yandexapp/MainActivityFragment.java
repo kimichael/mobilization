@@ -66,6 +66,9 @@ public class MainActivityFragment extends Fragment {
             final String TAG_ALBUMS = "albums";
             final String TAG_LINK = "link";
             final String TAG_DESCRIPTION = "description";
+            final String TAG_COVER = "cover";
+            final String TAG_SMALL = "small";
+            final String TAG_BIG = "big";
 
             JSONArray artistsJson = new JSONArray(JSONData);
             Artist[] artists = new Artist[artistsJson.length()];
@@ -88,9 +91,9 @@ public class MainActivityFragment extends Fragment {
                 artists[i].setLink(artistJson.getString(TAG_LINK));
                 artists[i].setDescription(artistJson.getString(TAG_DESCRIPTION));
 
-                JSONObject covers = artistJson.getJSONObject("cover");
-                artists[i].setCoverSmall(getBitmapFromURL(covers.getString("small")));
-                artists[i].setCoverBig(getBitmapFromURL(covers.getString("big")));
+                JSONObject covers = artistJson.getJSONObject(TAG_COVER);
+                artists[i].setCoverSmall(getBitmapFromURL(covers.getString(TAG_SMALL)));
+                artists[i].setCoverBig(getBitmapFromURL(covers.getString(TAG_BIG)));
 
             }
             return artists;
