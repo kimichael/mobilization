@@ -1,6 +1,7 @@
 package kimichael.com.yandexapp;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +11,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class ArtistAdapter<Artist> extends ArrayAdapter<Artist> {
+public class ArtistAdapter<T> extends ArrayAdapter<Artist> {
 
     private ArrayList<Artist> objects;
 
@@ -46,11 +47,11 @@ public class ArtistAdapter<Artist> extends ArrayAdapter<Artist> {
             }
 
             if (genres != null){
-                genres.setText(artist.getGenre());
+                genres.setText(TextUtils.join(", ", artist.getGenres()));
             }
 
             if (trackCount != null){
-                trackCount.setText(artist.getTracks() + artist.getAlbums());
+                trackCount.setText(Integer.toString(artist.getAlbums()) + " альбомов, "+ Integer.toString(artist.getTracks()) + " песен");
             }
         }
     return v;
