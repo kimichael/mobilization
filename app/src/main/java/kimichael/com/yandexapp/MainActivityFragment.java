@@ -7,6 +7,9 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -22,7 +25,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivityFragment extends Fragment {
 
@@ -32,17 +34,36 @@ public class MainActivityFragment extends Fragment {
     private ArtistAdapter<Artist> artistAdapter;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.refresh_button){
+            FetchArtistsTask fetchArtistsTask = new FetchArtistsTask();
+            fetchArtistsTask.execute();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_fragment, menu);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootview = inflater.inflate(R.layout.fragment_main, container, false);
 
-        //First initialization of listView
-        FetchArtistsTask fetchArtistsTask = new FetchArtistsTask();
-        fetchArtistsTask.execute();
-
         ArrayList<Artist> artistsArray = new ArrayList();
 
-        artistAdapter = new ArtistAdapter(
+        artistAdapter = new ArtistAdapter<>(
                 getActivity(),
                 R.layout.list_item_artist,
                 artistsArray
@@ -75,25 +96,27 @@ public class MainActivityFragment extends Fragment {
             for (int i = 0; i < artistsJson.length(); i++){
                 JSONObject artistJson = artistsJson.getJSONObject(i);
 
+                artists[i] = new Artist();
+
                 artists[i].setId(artistJson.getInt(TAG_ID));
                 artists[i].setName(artistJson.getString(TAG_NAME));
 
                 JSONArray genres = artistJson.getJSONArray(TAG_GENRES);
-                List<String> list = new ArrayList<String>();
+                ArrayList<String> list = new ArrayList<String>();
                 for (int j=0; j<genres.length(); j++) {
-                    list.add( genres.getString(i) );
+                    list.add( genres.getString(j) );
                 }
                 String[] genresArray = list.toArray(new String[list.size()]);
                 artists[i].setGenres(genresArray);
 
                 artists[i].setTracks(artistJson.getInt(TAG_TRACKS));
                 artists[i].setAlbums(artistJson.getInt(TAG_ALBUMS));
-                artists[i].setLink(artistJson.getString(TAG_LINK));
+                try{artists[i].setLink(artistJson.getString(TAG_LINK));}catch (JSONException e){artists[i].setLink("");}
                 artists[i].setDescription(artistJson.getString(TAG_DESCRIPTION));
 
                 JSONObject covers = artistJson.getJSONObject(TAG_COVER);
                 artists[i].setCoverSmall(getBitmapFromURL(covers.getString(TAG_SMALL)));
-                artists[i].setCoverBig(getBitmapFromURL(covers.getString(TAG_BIG)));
+                artists[i].setLinkCoverBig(covers.getString(TAG_BIG));
 
             }
             return artists;
