@@ -9,9 +9,25 @@
     tools:context="kimichael.com.yandexapp.MainActivityFragment"
     tools:showIn="@layout/activity_main">
 
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/artist_list_view"/>
+        android:id="@+id/artist_list_view"
+        android:fastScrollEnabled="true"
+        android:fastScrollAlwaysVisible="false"
+        android:scrollbarSize="4dp"/>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:id="@+id/progress_bar"/>
 
 </FrameLayout>

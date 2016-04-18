@@ -12,7 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,6 +34,9 @@ public class MainActivityFragment extends Fragment {
     }
 
     private ArtistAdapter<Artist> artistAdapter;
+    boolean isLoading = false;
+    private JSONArray artistsJSON;
+    ArrayList<Artist> artists;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,11 +47,7 @@ public class MainActivityFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        if (id == R.id.refresh_button){
-            FetchArtistsTask fetchArtistsTask = new FetchArtistsTask();
-            fetchArtistsTask.execute();
-        }
+        if (id == R.id.refresh_button){}
 
         return super.onOptionsItemSelected(item);
     }
@@ -66,19 +67,40 @@ public class MainActivityFragment extends Fragment {
         artistAdapter = new ArtistAdapter<>(
                 getActivity(),
                 R.layout.list_item_artist,
-                artistsArray
-        );
+                artistsArray);
+
+        artists = new ArrayList<>();
         ListView artistList = (ListView) rootview.findViewById(R.id.artist_list_view);
+        ProgressBar progressBar = (ProgressBar) rootview.findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.INVISIBLE);
+        artistList.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                int lastVisibleItem = firstVisibleItem + visibleItemCount;
+                int threshold = 10;
+                if ((lastVisibleItem >= totalItemCount - threshold) && !(isLoading)){
+                    isLoading = true;
+                    FetchArtistsTask fetchArtistsTask = new FetchArtistsTask();
+                    fetchArtistsTask.execute(lastVisibleItem, visibleItemCount);
+                }
+            }
+        });
         artistList.setAdapter(artistAdapter);
 
         return rootview;
     }
 
-    public class FetchArtistsTask extends AsyncTask<Void,Void,Artist[]>{
+    public class FetchArtistsTask extends AsyncTask<Integer,Void,ArrayList<Artist>>{
 
         String LOG_TAG = FetchArtistsTask.class.getSimpleName();
 
-        private Artist[] getArtistsDataFromJSON(String JSONData) throws JSONException{
+        private ArrayList<Artist> getArtistsDataFromJSON(String JSONData,
+                                                         int lastVisibleCount,
+                                                         int visibleItemCount) throws JSONException{
+            if (visibleItemCount == 0) {visibleItemCount = 7;}
 
             final String TAG_ID = "id";
             final String TAG_NAME = "name";
@@ -91,35 +113,38 @@ public class MainActivityFragment extends Fragment {
             final String TAG_SMALL = "small";
             final String TAG_BIG = "big";
 
-            JSONArray artistsJson = new JSONArray(JSONData);
-            Artist[] artists = new Artist[artistsJson.length()];
-            for (int i = 0; i < artistsJson.length(); i++){
-                JSONObject artistJson = artistsJson.getJSONObject(i);
 
-                artists[i] = new Artist();
+            if (JSONData != null){artistsJSON = new JSONArray(JSONData);}
 
-                artists[i].setId(artistJson.getInt(TAG_ID));
-                artists[i].setName(artistJson.getString(TAG_NAME));
+            ArrayList<Artist> artistsToAdd = new ArrayList<>();
+            int size = artists.size();
+            for (int i = size; i < size + visibleItemCount; i++){
+                JSONObject artistJson = artistsJSON.getJSONObject(i);
 
+                Artist artist = new Artist();
+
+                artist.setId(artistJson.getInt(TAG_ID));
+                artist.setName(artistJson.getString(TAG_NAME));
                 JSONArray genres = artistJson.getJSONArray(TAG_GENRES);
                 ArrayList<String> list = new ArrayList<String>();
                 for (int j=0; j<genres.length(); j++) {
                     list.add( genres.getString(j) );
                 }
                 String[] genresArray = list.toArray(new String[list.size()]);
-                artists[i].setGenres(genresArray);
-
-                artists[i].setTracks(artistJson.getInt(TAG_TRACKS));
-                artists[i].setAlbums(artistJson.getInt(TAG_ALBUMS));
-                try{artists[i].setLink(artistJson.getString(TAG_LINK));}catch (JSONException e){artists[i].setLink("");}
-                artists[i].setDescription(artistJson.getString(TAG_DESCRIPTION));
-
+                artist.setGenres(genresArray);
+                artist.setTracks(artistJson.getInt(TAG_TRACKS));
+                artist.setAlbums(artistJson.getInt(TAG_ALBUMS));
+                try{artist.setLink(artistJson.getString(TAG_LINK));}catch (JSONException e){artist.setLink("");}
+                artist.setDescription(artistJson.getString(TAG_DESCRIPTION));
                 JSONObject covers = artistJson.getJSONObject(TAG_COVER);
-                artists[i].setCoverSmall(getBitmapFromURL(covers.getString(TAG_SMALL)));
-                artists[i].setLinkCoverBig(covers.getString(TAG_BIG));
+                artist.setCoverSmall(getBitmapFromURL(covers.getString(TAG_SMALL)));
+                artist.setLinkCoverBig(covers.getString(TAG_BIG));
+
+                artists.add(i, artist);
+                artistsToAdd.add(artist);
 
             }
-            return artists;
+            return artistsToAdd;
         }
 
         public Bitmap getBitmapFromURL(String src) {
@@ -139,13 +164,27 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected Artist[] doInBackground(Void... params) {
+        protected ArrayList<Artist> doInBackground(Integer... params) {
+            String artistsData = null;
+
+            if (artistsJSON != null){
+                try{
+                    return getArtistsDataFromJSON(artistsData, params[0], params[1]);
+                } catch (JSONException e){
+                    Log.e(LOG_TAG, "Error: ", e);
+                    return null;
+                }
+            }
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
-            String artistsJSON = null;
+
+            if (params == null){
+                return null;
+            }
 
             try{
+
                 URL url = new URL("https://cache-default06g.cdn.yandex.net/download.cdn.yandex.net/mobilization-2016/artists.json");
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -166,7 +205,7 @@ public class MainActivityFragment extends Fragment {
                 if (buffer.length() == 0){
                     return null;
                 }
-                artistsJSON = buffer.toString();
+                artistsData = buffer.toString();
 
             } catch (IOException e){
                 Log.e(LOG_TAG, "Error: ", e);
@@ -187,7 +226,7 @@ public class MainActivityFragment extends Fragment {
                 }
             }
             try{
-                return getArtistsDataFromJSON(artistsJSON);
+                return getArtistsDataFromJSON(artistsData, params[0], params[1]);
             } catch (JSONException e){
                 Log.e(LOG_TAG, e.getMessage(), e );
                 e.printStackTrace();
@@ -197,13 +236,13 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(Artist[] artists) {
+        protected void onPostExecute(ArrayList<Artist> artists) {
             if (artists != null){
-                artistAdapter.clear();
                 for (Artist artist : artists){
                     artistAdapter.add(artist);
                 }
             }
+            isLoading = false;
         }
     }
 
