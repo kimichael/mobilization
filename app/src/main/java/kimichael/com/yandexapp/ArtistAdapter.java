@@ -5,6 +5,8 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -39,21 +41,28 @@ public class ArtistAdapter<T> extends ArrayAdapter<Artist> {
             TextView trackCount = (TextView) v.findViewById(R.id.album_track_count);
 
             if (cover != null){
-                cover.setImageBitmap(artist.getCoverSmall());
+                cover.setImageBitmap(artist.coverSmall);
             }
 
             if (name != null){
-                name.setText(artist.getName());
+                name.setText(artist.name);
             }
 
             if (genres != null){
-                genres.setText(TextUtils.join(", ", artist.getGenres()));
+                genres.setText(TextUtils.join(", ", artist.genres));
             }
 
             if (trackCount != null){
-                trackCount.setText(Integer.toString(artist.getAlbums()) + " альбомов, "+ Integer.toString(artist.getTracks()) + " песен");
+                trackCount.setText(Integer.toString(artist.albums) + " альбомов, "+ Integer.toString(artist.tracks) + " песен");
             }
         }
-    return v;
+
+        if (!artist.isShowedAlready) {
+            artist.isShowedAlready = true;
+            Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.list_item_animation);
+            v.startAnimation(animation);
+        }
+
+        return v;
     }
 }
