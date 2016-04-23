@@ -1,6 +1,9 @@
 package kimichael.com.yandexapp;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,58 +14,63 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
 
 public class ArtistAdapter<T> extends ArrayAdapter<Artist> {
 
     private ArrayList<Artist> objects;
+    private LayoutInflater inflater;
+    private Drawable placeholder;
 
     public ArtistAdapter(Context context, int textViewResourceId, ArrayList<Artist> objects) {
         super(context, textViewResourceId, objects);
         this.objects = objects;
+        inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        placeholder = context.getResources().getDrawable(R.drawable.placeholder);
     }
+
+    static class ViewHolder{
+        public ImageView cover;
+        public TextView name, genres, albumTrackCount;
+    }
+
+
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        View v = convertView;
+        ViewHolder holder;
 
-        if (v == null) {
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = inflater.inflate(R.layout.list_item_artist, null);
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.list_item_artist, parent, false);
+            holder = new ViewHolder();
+            holder.cover = (ImageView) convertView.findViewById(R.id.artist_cover_image);
+            holder.name = (TextView) convertView.findViewById(R.id.name);
+            holder.genres = (TextView) convertView.findViewById(R.id.genres);
+            holder.albumTrackCount = (TextView) convertView.findViewById(R.id.album_track_count);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
 
         Artist artist = objects.get(position);
-
-        if (artist != null){
-            ImageView cover = (ImageView) v.findViewById(R.id.artist_cover_image);
-            TextView name = (TextView) v.findViewById(R.id.name);
-            TextView genres = (TextView) v.findViewById(R.id.genres);
-            TextView trackCount = (TextView) v.findViewById(R.id.album_track_count);
-
-            if (cover != null){
-                cover.setImageBitmap(artist.coverSmall);
-            }
-
-            if (name != null){
-                name.setText(artist.name);
-            }
-
-            if (genres != null){
-                genres.setText(TextUtils.join(", ", artist.genres));
-            }
-
-            if (trackCount != null){
-                trackCount.setText(Integer.toString(artist.albums) + " альбомов, "+ Integer.toString(artist.tracks) + " песен");
-            }
-        }
+        holder.name.setText(artist.name);
+        Picasso.with(parent.getContext())
+                .load(artist.linkCoverSmall)
+                .placeholder(ContextCompat.getDrawable(getContext(), R.drawable.placeholder))
+                .into(holder.cover);
+        holder.genres.setText(TextUtils.join(", ", artist.genres));
+        holder.albumTrackCount.setText(artist.albums + " альбомов, " + artist.tracks + " песен" );
 
         if (!artist.isShowedAlready) {
             artist.isShowedAlready = true;
             Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.list_item_animation);
-            v.startAnimation(animation);
+            convertView.startAnimation(animation);
         }
 
-        return v;
+        return convertView;
     }
+
 }
