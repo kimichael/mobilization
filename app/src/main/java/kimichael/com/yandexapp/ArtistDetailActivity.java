@@ -21,8 +21,8 @@ public class ArtistDetailActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         Intent artistIntent = getIntent();
-        String name = artistIntent.getStringExtra("name");
-        setTitle(name);
+        Artist artist = artistIntent.getParcelableExtra("artist");
+        setTitle(artist.name);
     }
 
     @Override

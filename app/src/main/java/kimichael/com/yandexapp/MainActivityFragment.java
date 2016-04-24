@@ -2,6 +2,7 @@ package kimichael.com.yandexapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -15,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -29,7 +31,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class MainActivityFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
@@ -37,6 +45,7 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
 
     private ArtistAdapter<Artist> mArtistAdapter;
     private ListView mArtistListView;
+    SharedPreferences mSharedPreferences;
     private ArrayList<Artist> mArtistList;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     boolean isLoadingData = false;
@@ -44,6 +53,7 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mSharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
         setHasOptionsMenu(true);
     }
 
@@ -58,14 +68,14 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
 
         View rootview = inflater.inflate(R.layout.fragment_main, container, false);
         mArtistList = new ArrayList<>();
+        //Refresher indicator that appears on swiping to bottom at the top of the list
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootview.findViewById(R.id.swipe_refresh);
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary, R.color.colorPrimaryDark);
-        ArrayList<Artist> artistsArray = new ArrayList();
         mArtistAdapter = new ArtistAdapter<>(
                 getActivity(),
                 R.layout.list_item_artist,
-                artistsArray);
+                mArtistList);
 
         mArtistListView = (ListView) rootview.findViewById(R.id.artist_list_view);
         mArtistListView.setAdapter(mArtistAdapter);
@@ -76,8 +86,20 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
                 Intent detailIntent = new Intent(getActivity(), ArtistDetailActivity.class)
                         .putExtra("artist", artist);
                 startActivity(detailIntent);
-            }});
+            }
+        });
         mArtistListView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        mArtistListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+            }
+        });
 
 
         if (savedInstanceState != null){
@@ -118,11 +140,12 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
 
 
     private void refresh(){
+        //Check for Internet
         if (!(isNetworkAvailable())){Toast.makeText(getContext(),
                 getString(R.string.no_connection),
                 Toast.LENGTH_SHORT).show();
-            mSwipeRefreshLayout.setRefreshing(false);
-                return;}
+            mSwipeRefreshLayout.setRefreshing(false);}
+        //Load data
         if (!(isLoadingData)) {
             mArtistAdapter.clear();
             mArtistAdapter.notifyDataSetChanged();
@@ -193,9 +216,17 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
             String artistsData = null;
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
+            Date lastModifiedDate = null;
+            Date lastCachedDate = null;
+            String lastData = mSharedPreferences.getString("lastData", null);
+            String lastModified = null;
 
-            if (params == null){
-                return null;
+            if (!(isNetworkAvailable() && lastData == null)){
+                try {
+                return getArtistsDataFromJSON(lastData);
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }
             }
 
             try{
@@ -205,6 +236,30 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
+
+                //Checking if we can get data from cache and loading from cache if we need
+                lastModified = urlConnection.getHeaderField("Last-Modified");
+                String cachedLastResponse = mSharedPreferences.getString("lastResponse", null);
+                SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ZZZ", Locale.ENGLISH);
+                if (cachedLastResponse != null && lastData != null) {
+                    try {
+                        lastModifiedDate = formatter.parse(lastModified);
+                        lastCachedDate = formatter.parse(cachedLastResponse);
+                    } catch (ParseException e){
+                        e.printStackTrace();
+                    }
+
+                    if (lastCachedDate.compareTo(lastModifiedDate) == 0) {
+                        try {
+                            return getArtistsDataFromJSON(lastData);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                //Retrieving data from server
+                if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK){return null;}
                 InputStream inputStream = urlConnection.getInputStream();
                 StringBuffer buffer = new StringBuffer();
                 if (inputStream == null){
@@ -241,6 +296,12 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
                 }
             }
             try{
+                //Saving data to shared preferences
+                SharedPreferences.Editor editor = mSharedPreferences.edit();
+                editor.putString("lastData", artistsData);
+                editor.putString("lastResponse", lastModified);
+                editor.commit();
+
                 return getArtistsDataFromJSON(artistsData);
             } catch (JSONException e){
                 Log.e(LOG_TAG, e.getMessage(), e );
