@@ -22,13 +22,11 @@ public class ArtistAdapter<T> extends ArrayAdapter<Artist> {
 
     private ArrayList<Artist> objects;
     private LayoutInflater inflater;
-    private Drawable placeholder;
 
     public ArtistAdapter(Context context, int textViewResourceId, ArrayList<Artist> objects) {
         super(context, textViewResourceId, objects);
         this.objects = objects;
         inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        placeholder = context.getResources().getDrawable(R.drawable.placeholder);
     }
 
     static class ViewHolder{
@@ -62,7 +60,7 @@ public class ArtistAdapter<T> extends ArrayAdapter<Artist> {
                 .placeholder(ContextCompat.getDrawable(getContext(), R.drawable.placeholder))
                 .into(holder.cover);
         holder.genres.setText(TextUtils.join(", ", artist.genres));
-        holder.albumTrackCount.setText(artist.albums + " альбомов, " + artist.tracks + " песен" );
+        holder.albumTrackCount.setText(String.format("%d альбомов, %d песен", artist.albums, artist.tracks));
 
         if (!artist.isShowedAlready) {
             artist.isShowedAlready = true;

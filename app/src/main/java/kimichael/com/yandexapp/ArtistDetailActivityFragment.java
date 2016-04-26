@@ -21,9 +21,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class ArtistDetailActivityFragment extends Fragment {
 
     ImageView mCover;
@@ -46,7 +43,7 @@ public class ArtistDetailActivityFragment extends Fragment {
         ((TextView) rootview.findViewById(R.id.biography))
                 .setText(artist.description.substring(0, 1).toUpperCase() + artist.description.substring(1));
         ((TextView) rootview.findViewById(R.id.album_track_count))
-                .setText(artist.albums + " альбомов, " + artist.tracks + " песен");
+                .setText(String.format("%d альбомов, %d песен", artist.albums, artist.tracks));
         Picasso.with(getContext())
                 .load(artist.linkCoverBig)
                 .placeholder(ContextCompat.getDrawable(getContext(), R.drawable.placeholder))

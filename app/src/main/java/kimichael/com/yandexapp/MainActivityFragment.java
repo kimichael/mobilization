@@ -147,6 +147,7 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
             mSwipeRefreshLayout.setRefreshing(false);}
         //Load data
         if (!(isLoadingData)) {
+            mSwipeRefreshLayout.setRefreshing(true);
             mArtistAdapter.clear();
             mArtistAdapter.notifyDataSetChanged();
             mArtistList = new ArrayList<>();
@@ -164,6 +165,9 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
 
     public class FetchArtistsTask extends AsyncTask<Integer,Void,ArrayList<Artist>>{
 
+        public static final String LAST_MODIFIED = "Last-Modified";
+        public static final String LAST_RESPONSE = "lastResponse";
+        public static final String FETCH_JSON_URL = "https://cache-default06g.cdn.yandex.net/download.cdn.yandex.net/mobilization-2016/artists.json";
         String LOG_TAG = FetchArtistsTask.class.getSimpleName();
 
         private ArrayList<Artist> getArtistsDataFromJSON(String JSONData) throws JSONException{
@@ -231,15 +235,15 @@ public class MainActivityFragment extends Fragment implements SwipeRefreshLayout
 
             try{
 
-                URL url = new URL("https://cache-default06g.cdn.yandex.net/download.cdn.yandex.net/mobilization-2016/artists.json");
+                URL url = new URL(FETCH_JSON_URL);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
 
                 //Checking if we can get data from cache and loading from cache if we need
-                lastModified = urlConnection.getHeaderField("Last-Modified");
-                String cachedLastResponse = mSharedPreferences.getString("lastResponse", null);
+                lastModified = urlConnection.getHeaderField(LAST_MODIFIED);
+                String cachedLastResponse = mSharedPreferences.getString(LAST_RESPONSE, null);
                 SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ZZZ", Locale.ENGLISH);
                 if (cachedLastResponse != null && lastData != null) {
                     try {
