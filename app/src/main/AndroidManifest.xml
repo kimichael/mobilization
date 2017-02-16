@@ -25,7 +25,12 @@
             android:name=".ArtistDetailActivity"
             android:label="@string/title_activity_artist_detail"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <provider
+            android:authorities="@string/content_authority"
+            android:name=".provider.ArtistProvider"
+            android:exported="false"
+            android:syncable="true"/>
     </application>
 
 </manifest>

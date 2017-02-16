@@ -5,4 +5,6 @@
     <string name="biography">Биография</string>
     <string name="title_activity_artist_detail">ArtistDetailActivity</string>
     <string name="no_connection">Нет соединения с интернетом</string>
+
+    <string name="content_authority">kimichael.com.yandexapp</string>
 </resources>
