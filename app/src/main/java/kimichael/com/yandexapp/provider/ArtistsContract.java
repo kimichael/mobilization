@@ -1,6 +1,7 @@
 package kimichael.com.yandexapp.provider;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -37,7 +38,6 @@ public class ArtistsContract {
         public String description;
         public String linkCoverBig, linkCoverSmall;
         public boolean isShowedAlready; */
-        public static final String COLUMN_ID = "id";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_GENRES = "genres";
         public static final String COLUMN_TRACKS = "tracks";
@@ -46,6 +46,10 @@ public class ArtistsContract {
         public static final String COLUMN_DESC = "desc";
         public static final String COLUMN_LINK_BIG = "link_big";
         public static final String COLUMN_LINK_SMALL = "link_small";
+
+        public static Uri buildArtistUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     public static final class GenreEntry implements BaseColumns {
@@ -60,8 +64,11 @@ public class ArtistsContract {
 
         public static final String TABLE_NAME = "genre";
 
-        public static final String COLUMN_ID = "id";
         public static final String COLUMN_NAME = "name";
+
+        public static Uri buildGenreUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     public static final class ArtistsGenresEntry implements BaseColumns {

@@ -21,6 +21,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.Locale;
+
 public class ArtistDetailActivityFragment extends Fragment {
 
     ImageView mCover;

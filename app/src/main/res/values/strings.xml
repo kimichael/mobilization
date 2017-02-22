@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/tools">
     <string name="app_name">Яндекс Мобилизация</string>
     <string name="action_settings">Настройки</string>
     <string name="menu_refresh">Обновить</string>
@@ -7,4 +7,6 @@
     <string name="no_connection">Нет соединения с интернетом</string>
 
     <string name="content_authority">kimichael.com.yandexapp</string>
+
+    <string name="album_track_count_format"><xliff:g id="album_count">%d</xliff:g> альбомов, <xliff:g id="track_count">%d</xliff:g> песен</string>
 </resources>
