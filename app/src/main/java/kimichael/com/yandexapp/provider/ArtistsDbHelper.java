@@ -24,7 +24,7 @@ public class ArtistsDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         final String SQL_CREATE_ARTISTS_TABLE = "CREATE TABLE " + ArtistEntry.TABLE_NAME + " (" +
-                ArtistEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                ArtistEntry._ID + " INTEGER PRIMARY KEY, " +
                 ArtistEntry.COLUMN_NAME + " TEXT UNIQUE NOT NULL, " +
                 ArtistEntry.COLUMN_ALBUMS + " INTEGER, " +
                 ArtistEntry.COLUMN_GENRES + " TEXT, " +

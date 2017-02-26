@@ -159,4 +159,9 @@ public class ArtistProvider extends ContentProvider {
         getContext().getContentResolver().notifyChange(uri, null);
         return rowsUpdated;
     }
+
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        return super.bulkInsert(uri, values);
+    }
 }

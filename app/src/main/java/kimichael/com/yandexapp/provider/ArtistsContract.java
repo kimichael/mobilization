@@ -38,6 +38,7 @@ public class ArtistsContract {
         public String description;
         public String linkCoverBig, linkCoverSmall;
         public boolean isShowedAlready; */
+        public static final String COLUMN_ID = "id";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_GENRES = "genres";
         public static final String COLUMN_TRACKS = "tracks";
